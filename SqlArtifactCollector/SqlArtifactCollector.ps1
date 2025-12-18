@@ -128,20 +128,11 @@ try {
                 $sheet.Cells.Item($currentRow, $colIndex) = $col.ColumnName
                 $colIndex++
             }
-            # Style Headers
-            if ($dataTable.Table.Columns.Count -gt 0) {
-                $headerRowRange = $sheet.Range($sheet.Cells.Item($currentRow, 1), $sheet.Cells.Item($currentRow, $dataTable.Table.Columns.Count))
-                $headerRowRange.Font.Bold = $true
-                $headerRowRange.Interior.ColorIndex = 15 # Light Grey
-                
-                # Apply AutoFilter
-                $headerRowRange.AutoFilter()
-            }
             
+            $headerRowStart = $currentRow
             $currentRow++
             
             # 3. Write Data
-            # For large datasets, cell-by-cell is slow. Range value assignment is faster but let's stick to simple loop for clarity unless performance is key.
             # Using 2D array for speed
             if ($dataTable.Table.Rows.Count -gt 0) {
                 $dataArray = New-Object 'object[,]' $dataTable.Table.Rows.Count, $dataTable.Table.Columns.Count
@@ -157,6 +148,20 @@ try {
                 $range.Value2 = $dataArray
                 
                 $currentRow += $dataTable.Table.Rows.Count
+            }
+
+            # 4. Format as Table
+            if ($dataTable.Table.Columns.Count -gt 0) {
+                $lastRow = $currentRow - 1
+                $tableRange = $sheet.Range($sheet.Cells.Item($headerRowStart, 1), $sheet.Cells.Item($lastRow, $dataTable.Table.Columns.Count))
+                
+                # xlSrcRange = 1, xlYes = 1
+                $listObject = $sheet.ListObjects.Add(1, $tableRange, $null, 1)
+                
+                # Sanitize table name to be Excel compliant (No spaces, start with letter)
+                $safeName = "Tbl_" + ($file.BaseName -replace '[^a-zA-Z0-9_]', '') + "_" + (Get-Random -Minimum 1000 -Maximum 9999)
+                $listObject.Name = $safeName
+                $listObject.TableStyle = "TableStyleMedium2"
             }
             
             # 4. Empty Row Separator
