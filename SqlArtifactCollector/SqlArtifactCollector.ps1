@@ -124,13 +124,13 @@ try {
             
             # 2. Write Column Headers
             $colIndex = 1
-            foreach ($col in $dataTable.Columns) {
+            foreach ($col in $dataTable.Table.Columns) {
                 $sheet.Cells.Item($currentRow, $colIndex) = $col.ColumnName
                 $colIndex++
             }
             # Style Headers
-            if ($dataTable.Columns.Count -gt 0) {
-                $headerRowRange = $sheet.Range($sheet.Cells.Item($currentRow, 1), $sheet.Cells.Item($currentRow, $dataTable.Columns.Count))
+            if ($dataTable.Table.Columns.Count -gt 0) {
+                $headerRowRange = $sheet.Range($sheet.Cells.Item($currentRow, 1), $sheet.Cells.Item($currentRow, $dataTable.Table.Columns.Count))
                 $headerRowRange.Font.Bold = $true
                 $headerRowRange.Interior.ColorIndex = 15 # Light Grey
                 
@@ -143,20 +143,20 @@ try {
             # 3. Write Data
             # For large datasets, cell-by-cell is slow. Range value assignment is faster but let's stick to simple loop for clarity unless performance is key.
             # Using 2D array for speed
-            if ($dataTable.Rows.Count -gt 0) {
-                $dataArray = New-Object 'object[,]' $dataTable.Rows.Count, $dataTable.Columns.Count
-                for ($r = 0; $r -lt $dataTable.Rows.Count; $r++) {
-                    for ($c = 0; $c -lt $dataTable.Columns.Count; $c++) {
-                        $dataArray[$r, $c] = $dataTable.Rows[$r][$c].ToString()
+            if ($dataTable.Table.Rows.Count -gt 0) {
+                $dataArray = New-Object 'object[,]' $dataTable.Table.Rows.Count, $dataTable.Table.Columns.Count
+                for ($r = 0; $r -lt $dataTable.Table.Rows.Count; $r++) {
+                    for ($c = 0; $c -lt $dataTable.Table.Columns.Count; $c++) {
+                        $dataArray[$r, $c] = $dataTable.Table.Rows[$r][$c].ToString()
                     }
                 }
                 
                 $startCell = $sheet.Cells.Item($currentRow, 1)
-                $endCell = $sheet.Cells.Item($currentRow + $dataTable.Rows.Count - 1, $dataTable.Columns.Count)
+                $endCell = $sheet.Cells.Item($currentRow + $dataTable.Table.Rows.Count - 1, $dataTable.Table.Columns.Count)
                 $range = $sheet.Range($startCell, $endCell)
                 $range.Value2 = $dataArray
                 
-                $currentRow += $dataTable.Rows.Count
+                $currentRow += $dataTable.Table.Rows.Count
             }
             
             # 4. Empty Row Separator
